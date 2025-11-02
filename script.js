@@ -3,7 +3,7 @@ const shareBtn = document.getElementById("share");
 const codeArea = document.getElementById("code");
 const output = document.getElementById("output");
 
-const backendURL = "https://backend-repo-j0ed.onrender.com"; // change this!
+const backendURL = "https://backend-repo-j0ed.onrender.com"; // your Render backend URL
 
 runBtn.onclick = async () => {
   const res = await fetch(`${backendURL}/run`, {
