@@ -31,39 +31,68 @@
 
   <!-- Main Script -->
   <script>
-    // Initialize CodeMirror
-    const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-      mode: "python",
-      theme: "dracula",
-      lineNumbers: true,
-      autoCloseBrackets: true,
-      indentUnit: 4,
-      matchBrackets: true,
-      lineWrapping: true,
-      fontSize: "16px"
-    });
+  // Initialize CodeMirror
+  const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+    mode: "python",
+    theme: "dracula",
+    lineNumbers: true,
+    autoCloseBrackets: true,
+    indentUnit: 4,
+    matchBrackets: true,
+    lineWrapping: true,
+    fontSize: "16px"
+  });
 
-    // Run code
-    document.getElementById("run").addEventListener("click", async () => {
-      const code = editor.getValue();
-      document.getElementById("output").textContent = "Running...";
-      try {
-        const res = await fetch("https://backend-repo-j0ed.onrender.com/run", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code }),
-        });
-        const data = await res.json();
-        document.getElementById("output").textContent = data.output;
-      } catch (err) {
-        document.getElementById("output").textContent = "Error: " + err.message;
+  const backendURL = "https://backend-repo-j0ed.onrender.com"; // your backend
+
+  // Run code
+  document.getElementById("run").addEventListener("click", async () => {
+    const code = editor.getValue();
+    document.getElementById("output").textContent = "Running...";
+    try {
+      const res = await fetch(`${backendURL}/run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      document.getElementById("output").textContent = data.output;
+    } catch (err) {
+      document.getElementById("output").textContent = "Error: " + err.message;
+    }
+  });
+
+  // ✅ Share code
+  document.getElementById("share").addEventListener("click", async () => {
+    const code = editor.getValue();
+    try {
+      const res = await fetch(`${backendURL}/share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        navigator.clipboard.writeText(data.url);
+        alert(`✅ Link copied!\n${data.url}`);
+      } else {
+        alert(`⚠️ Error: ${data.error}`);
       }
-    });
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  });
 
-    // Share feature placeholder
-    document.getElementById("share").addEventListener("click", () => {
-      alert("Sharing feature coming soon! 🐍");
-    });
-  </script>
+  // ✅ Load shared code from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const codeId = urlParams.get("id");
+  if (codeId) {
+    fetch(`${backendURL}/code/${codeId}`)
+      .then(res => res.json())
+      .then(data => {
+        editor.setValue(data.code || "Error loading code.");
+      });
+  }
+</script>
 </body>
 </html>
