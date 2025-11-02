@@ -1,75 +1,52 @@
-const codeArea = document.getElementById("code");
-const output = document.getElementById("output");
-const runBtn = document.getElementById("run");
-const shareBtn = document.getElementById("share");
+const backend = "https://backend-repo-j0ed.onrender.com"; // replace with your backend URL
 
-// your Render backend URL (replace with yours)
-const backendURL = "https://backend-repo-j0ed.onrender.com";  
+// Initialize CodeMirror
+const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+  mode: "python",
+  theme: "dracula",
+  lineNumbers: true,
+  autoCloseBrackets: true,
+  indentUnit: 4,
+  matchBrackets: true,
+  lineWrapping: true,
+});
 
-// --- RUN CODE ---
-runBtn.addEventListener("click", async () => {
-  const code = codeArea.value.trim();
-  if (!code) return alert("Write some Python code first!");
-
-  output.textContent = "Running...";
-  try {
-    const res = await fetch(`${backendURL}/run`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code })
-    });
-    const data = await res.json();
-    output.textContent = data.output || data.error || "No output.";
-  } catch (err) {
-    output.textContent = "Error connecting to backend.";
+// Run button
+document.getElementById("run").addEventListener("click", async () => {
+  const code = editor.getValue();
+  document.getElementById("output").textContent = "Running...";
+  const res = await fetch(`${backend}/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+  const data = await res.json();
+  document.getElementById("output").textContent = data.output;
+  if (data.share_url) {
+    document.getElementById("share").setAttribute("data-url", data.share_url);
+    document.getElementById("share").disabled = false;
   }
 });
 
-// --- SHARE CODE ---
-shareBtn.addEventListener("click", async () => {
-  const code = codeArea.value.trim();
-  if (!code) return alert("Write some Python code first!");
-
-  shareBtn.disabled = true;
-  shareBtn.textContent = "Sharing...";
-
-  try {
-    const res = await fetch(`${backendURL}/share`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code })
-    });
-    const data = await res.json();
-
-    if (data.share_url) {
-      const fullLink = data.share_url;
-      navigator.clipboard.writeText(fullLink);
-      alert("Link copied! Share it: " + fullLink);
-    } else {
-      alert("Share failed: " + (data.error || "unknown error"));
-    }
-  } catch (err) {
-    alert("Error sharing code.");
+// Share button
+document.getElementById("share").addEventListener("click", () => {
+  const url = document.getElementById("share").getAttribute("data-url");
+  if (url) {
+    navigator.clipboard.writeText(url);
+    alert("✅ Link copied: " + url);
+  } else {
+    alert("Please run the code first!");
   }
-
-  shareBtn.disabled = false;
-  shareBtn.textContent = "Share";
 });
 
-// --- LOAD CODE (when someone opens a shared link) ---
+// Load code from URL (if shared link)
 const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-if (id) {
-  output.textContent = "Loading shared code...";
-  fetch(`${backendURL}/load?id=${id}`)
+const codeId = params.get("id");
+if (codeId) {
+  fetch(`${backend}/code/${codeId}`)
     .then(res => res.json())
     .then(data => {
-      if (data.code) {
-        codeArea.value = data.code;
-        output.textContent = "Loaded shared code!";
-      } else {
-        output.textContent = "Code not found.";
-      }
-    })
-    .catch(() => (output.textContent = "Error loading code."));
+      if (data.code) editor.setValue(data.code);
+      else editor.setValue("# Code not found 😢");
+    });
 }
