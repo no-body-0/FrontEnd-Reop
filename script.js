@@ -1,52 +1,42 @@
-const backend = "https://backend-repo-j0ed.onrender.com"; // replace with your backend URL
+const runBtn = document.getElementById("run");
+const shareBtn = document.getElementById("share");
+const codeArea = document.getElementById("code");
+const output = document.getElementById("output");
 
-// Initialize CodeMirror
-const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-  mode: "python",
-  theme: "dracula",
-  lineNumbers: true,
-  autoCloseBrackets: true,
-  indentUnit: 4,
-  matchBrackets: true,
-  lineWrapping: true,
-});
+const backendURL = "https://backend-repo-j0ed.onrender.com"; // change this!
 
-// Run button
-document.getElementById("run").addEventListener("click", async () => {
-  const code = editor.getValue();
-  document.getElementById("output").textContent = "Running...";
-  const res = await fetch(`${backend}/run`, {
+runBtn.onclick = async () => {
+  const res = await fetch(`${backendURL}/run`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code }),
+    body: JSON.stringify({ code: codeArea.value }),
   });
   const data = await res.json();
-  document.getElementById("output").textContent = data.output;
-  if (data.share_url) {
-    document.getElementById("share").setAttribute("data-url", data.share_url);
-    document.getElementById("share").disabled = false;
-  }
-});
+  output.textContent = data.output;
+};
 
-// Share button
-document.getElementById("share").addEventListener("click", () => {
-  const url = document.getElementById("share").getAttribute("data-url");
-  if (url) {
-    navigator.clipboard.writeText(url);
-    alert("✅ Link copied: " + url);
+shareBtn.onclick = async () => {
+  const res = await fetch(`${backendURL}/share`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: codeArea.value }),
+  });
+  const data = await res.json();
+  if (data.url) {
+    navigator.clipboard.writeText(data.url);
+    alert(`✅ Link copied!\n${data.url}`);
   } else {
-    alert("Please run the code first!");
+    alert(`⚠️ Error: ${data.error}`);
   }
-});
+};
 
-// Load code from URL (if shared link)
-const params = new URLSearchParams(window.location.search);
-const codeId = params.get("id");
+// Load code from URL
+const urlParams = new URLSearchParams(window.location.search);
+const codeId = urlParams.get("id");
 if (codeId) {
-  fetch(`${backend}/code/${codeId}`)
+  fetch(`${backendURL}/code/${codeId}`)
     .then(res => res.json())
     .then(data => {
-      if (data.code) editor.setValue(data.code);
-      else editor.setValue("# Code not found 😢");
+      codeArea.value = data.code || "Error loading code.";
     });
 }
