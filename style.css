@@ -7,10 +7,10 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
   padding: 20px;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* === Title === */
@@ -25,17 +25,27 @@ h2 {
 #console {
   width: 90%;
   max-width: 900px;
-  height: 500px;
+  min-height: 250px;
+  max-height: 80vh;
   background-color: #282a36;
   color: #f8f8f2;
   border: 1px solid #44475a;
   border-radius: 12px;
-  padding: 12px;
+  padding: 12px 15px;
   font-size: 16px;
   line-height: 1.5;
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
   overflow-y: auto;
   white-space: pre-wrap;
+  outline: none;
+  caret-color: #50fa7b;
+  resize: none;
+  transition: max-height 0.3s ease, min-height 0.3s ease;
+}
+
+/* Dynamic growth behavior */
+#console.grow {
+  max-height: none;
 }
 
 /* Input line style inside console */
@@ -44,7 +54,7 @@ h2 {
   color: #50fa7b;
 }
 
-/* Cursor effect */
+/* Cursor blink effect */
 .cursor {
   display: inline-block;
   width: 8px;
@@ -103,4 +113,7 @@ button {
 ::-webkit-scrollbar-thumb {
   background-color: #44475a;
   border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #6272a4;
 }
