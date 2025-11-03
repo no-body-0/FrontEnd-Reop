@@ -10,6 +10,7 @@ body {
   height: 100vh;
   margin: 0;
   padding: 20px;
+  overflow: hidden;
 }
 
 /* === Title === */
@@ -20,23 +21,48 @@ h2 {
   margin-bottom: 20px;
 }
 
-/* === Editor === */
-.CodeMirror {
+/* === Console (merged input + output) === */
+#console {
   width: 90%;
   max-width: 900px;
-  height: 400px;
-  border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-  margin-bottom: 15px;
-  font-size: 16px;
+  height: 500px;
+  background-color: #282a36;
+  color: #f8f8f2;
   border: 1px solid #44475a;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+/* Input line style inside console */
+#input-line {
+  display: inline;
+  color: #50fa7b;
+}
+
+/* Cursor effect */
+.cursor {
+  display: inline-block;
+  width: 8px;
+  background: #50fa7b;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
 }
 
 /* === Buttons === */
 .buttons {
   display: flex;
   gap: 12px;
-  margin-bottom: 15px;
+  margin: 15px 0;
 }
 
 button {
@@ -68,22 +94,6 @@ button {
 #share:hover {
   background-color: #ffea70;
   box-shadow: 0 0 10px rgba(255, 212, 59, 0.8);
-}
-
-/* === Output === */
-#output {
-  width: 90%;
-  max-width: 900px;
-  background-color: #282a36;
-  color: #50fa7b; /* Python green output */
-  border-radius: 10px;
-  padding: 15px;
-  min-height: 150px;
-  font-family: 'Fira Code', monospace;
-  white-space: pre-wrap;
-  overflow-y: auto;
-  border: 1px solid #44475a;
-  box-shadow: 0 0 12px rgba(80, 250, 123, 0.2);
 }
 
 /* === Scrollbars === */
