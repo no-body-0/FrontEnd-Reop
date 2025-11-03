@@ -84,7 +84,7 @@
     #console {
       width: 90%;
       max-width: 900px;
-      height: 300px;
+      height: 350px;
       border-radius: 10px;
       border: 1px solid #44475a;
       background-color: #282a36;
@@ -116,13 +116,13 @@
 <body>
   <h2>🐍 Online Python Compiler</h2>
 
-  <textarea id="code">print("Hello, world!")</textarea>
+  <textarea id="code">print("Hello!!!")</textarea>
   <div class="buttons">
     <button id="run">▶ Run</button>
     <button id="share">🔗 Share</button>
   </div>
 
-  <textarea id="console" placeholder=">>> Type your input here..."></textarea>
+  <div id="console" contenteditable="true">>>> </div>
 
   <!-- CodeMirror Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -143,32 +143,48 @@
     const backendURL = "https://backend-repo-j0ed.onrender.com";
     const consoleBox = document.getElementById("console");
 
-    // === Run Button ===
-    document.getElementById("run").addEventListener("click", async () => {
-      const code = editor.getValue();
-      const inputText = consoleBox.value;
-      const previous = consoleBox.value;
+    // === Append Output ===
+    function appendToConsole(text) {
+      consoleBox.innerText += "\n" + text + "\n>>> ";
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
 
-      consoleBox.value = previous + "\n>>> Running...\n";
+    // === Run Python code ===
+    async function runCode(inputLine = "") {
+      const code = editor.getValue();
+
+      appendToConsole("Running...");
 
       try {
         const res = await fetch(`${backendURL}/run`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, stdin: inputText }),
+          body: JSON.stringify({ code, stdin: inputLine }),
         });
         const data = await res.json();
-
-        const outputText = data.output.trim();
-        consoleBox.value = previous + "\n" + outputText + "\n";
+        const output = data.output.trim();
+        appendToConsole(output);
       } catch (err) {
-        consoleBox.value = previous + "\nError: " + err.message;
+        appendToConsole("Error: " + err.message);
       }
+    }
 
-      consoleBox.scrollTop = consoleBox.scrollHeight;
+    // === Run button ===
+    document.getElementById("run").addEventListener("click", async () => {
+      const lastLine = consoleBox.innerText.split(">>> ").pop().trim();
+      await runCode(lastLine);
     });
 
-    // === Share Button ===
+    // === Press Enter to run current line ===
+    consoleBox.addEventListener("keydown", async (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        const lastLine = consoleBox.innerText.split(">>> ").pop().trim();
+        await runCode(lastLine);
+      }
+    });
+
+    // === Share button ===
     document.getElementById("share").addEventListener("click", async () => {
       const code = editor.getValue();
       try {
@@ -177,7 +193,6 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code }),
         });
-
         const data = await res.json();
         if (data.url) {
           await navigator.clipboard.writeText(data.url);
@@ -190,7 +205,7 @@
       }
     });
 
-    // === Load Shared Code from URL ===
+    // === Load shared code from URL ===
     const urlParams = new URLSearchParams(window.location.search);
     const codeId = urlParams.get("id");
     if (codeId) {
