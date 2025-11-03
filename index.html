@@ -122,7 +122,7 @@
     <button id="share">🔗 Share</button>
   </div>
 
-  <textarea id="console" placeholder="Type your input here (each line = one input)\nOutput will appear below..."></textarea>
+  <textarea id="console" placeholder=">>> Type your input here..."></textarea>
 
   <!-- CodeMirror Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -130,7 +130,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 
   <script>
-    // === Initialize CodeMirror ===
     const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
       mode: "python",
       theme: "dracula",
@@ -147,25 +146,23 @@
     // === Run Button ===
     document.getElementById("run").addEventListener("click", async () => {
       const code = editor.getValue();
-      const stdin = consoleBox.value.trimEnd();
+      const inputText = consoleBox.value;
+      const previous = consoleBox.value;
 
-      const before = consoleBox.value;
-      consoleBox.value = before + "\n\n⏳ Running...\n";
+      consoleBox.value = previous + "\n>>> Running...\n";
 
       try {
         const res = await fetch(`${backendURL}/run`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, stdin }),
+          body: JSON.stringify({ code, stdin: inputText }),
         });
         const data = await res.json();
 
         const outputText = data.output.trim();
-        consoleBox.value =
-          stdin + "\n" + "―".repeat(40) + "\n" + outputText + "\n";
+        consoleBox.value = previous + "\n" + outputText + "\n";
       } catch (err) {
-        consoleBox.value =
-          stdin + "\n" + "―".repeat(40) + "\nError: " + err.message;
+        consoleBox.value = previous + "\nError: " + err.message;
       }
 
       consoleBox.scrollTop = consoleBox.scrollHeight;
