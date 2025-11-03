@@ -16,49 +16,63 @@ body {
 /* === Title === */
 h2 {
   color: #ffd43b; /* Python yellow */
-  text-shadow: 0 0 8px rgba(255, 212, 59, 0.5);
-  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255, 212, 59, 0.6);
+  font-weight: 700;
+  letter-spacing: 1px;
   margin-bottom: 20px;
+  transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+h2:hover {
+  transform: scale(1.03);
+  text-shadow: 0 0 15px rgba(255, 212, 59, 0.9);
 }
 
 /* === Console (merged input + output) === */
 #console {
   width: 90%;
   max-width: 900px;
-  min-height: 250px;
-  max-height: 80vh;
-  background-color: #282a36;
+  min-height: 260px;
+  max-height: 75vh;
+  background: linear-gradient(180deg, #282a36 0%, #1e1e2e 100%);
   color: #f8f8f2;
   border: 1px solid #44475a;
   border-radius: 12px;
-  padding: 12px 15px;
+  padding: 14px 18px;
   font-size: 16px;
   line-height: 1.5;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 18px rgba(0, 255, 255, 0.15);
   overflow-y: auto;
   white-space: pre-wrap;
   outline: none;
   caret-color: #50fa7b;
   resize: none;
-  transition: max-height 0.3s ease, min-height 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
-/* Dynamic growth behavior */
+/* On focus – subtle glow */
+#console:focus {
+  box-shadow: 0 0 25px rgba(80, 250, 123, 0.4);
+  transform: scale(1.01);
+}
+
+/* Dynamic growth */
 #console.grow {
   max-height: none;
 }
 
-/* Input line style inside console */
+/* === Input line === */
 #input-line {
   display: inline;
-  color: #50fa7b;
+  color: #50fa7b; /* Bright green for active input */
 }
 
-/* Cursor blink effect */
+/* === Cursor blink === */
 .cursor {
   display: inline-block;
   width: 8px;
   background: #50fa7b;
+  margin-left: 2px;
   animation: blink 1s steps(2, start) infinite;
 }
 
@@ -68,42 +82,47 @@ h2 {
   }
 }
 
-/* === Buttons === */
+/* === Buttons Section === */
 .buttons {
   display: flex;
-  gap: 12px;
-  margin: 15px 0;
+  gap: 14px;
+  margin: 18px 0;
 }
 
 button {
   font-family: 'Fira Code', monospace;
-  padding: 10px 24px;
+  padding: 10px 26px;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   font-size: 15px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
 }
 
-/* Run button - Python blue */
+/* Run button – Python blue */
 #run {
   background-color: #3776ab;
   color: white;
+  box-shadow: 0 0 10px rgba(55, 118, 171, 0.4);
 }
 #run:hover {
   background-color: #4a90d9;
-  box-shadow: 0 0 10px rgba(55, 118, 171, 0.8);
+  box-shadow: 0 0 16px rgba(55, 118, 171, 0.8);
+  transform: translateY(-2px);
 }
 
-/* Share button - Python yellow */
+/* Share button – Python yellow */
 #share {
   background-color: #ffd43b;
   color: #2e2e2e;
+  box-shadow: 0 0 10px rgba(255, 212, 59, 0.4);
 }
 #share:hover {
   background-color: #ffea70;
-  box-shadow: 0 0 10px rgba(255, 212, 59, 0.8);
+  box-shadow: 0 0 16px rgba(255, 212, 59, 0.8);
+  transform: translateY(-2px);
 }
 
 /* === Scrollbars === */
