@@ -8,29 +8,51 @@ const backendURL = "https://backend-repo-j0ed.onrender.com"; // your Render back
 // === Run Code ===
 runBtn.onclick = async () => {
   const code = codeArea.value.trim();
-  const userInput = consoleBox.value.trimEnd();
+  const currentText = consoleBox.value.trimEnd();
 
-  // Show running message without clearing previous input
-  consoleBox.value = userInput + "\n\n⏳ Running...\n";
+  // Prepare a clean input line
+  const newInputLine = currentText ? "\n" : "";
+
+  // Append "Running..." below current content
+  consoleBox.value = currentText + newInputLine + "⏳ Running...\n";
+  consoleBox.scrollTop = consoleBox.scrollHeight;
 
   try {
     const res = await fetch(`${backendURL}/run`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, stdin: userInput }),
+      body: JSON.stringify({
+        code,
+        stdin: currentText, // send all previous console text as stdin
+      }),
     });
 
     const data = await res.json();
+    const outputText = data.output?.trim() || "(no output)";
 
-    const outputText = data.output ? data.output.trim() : "(no output)";
+    // Append output below the previous text
     consoleBox.value =
-      userInput + "\n" + "―".repeat(40) + "\n" + outputText + "\n";
+      currentText +
+      "\n" +
+      "―".repeat(40) +
+      "\n" +
+      outputText +
+      "\n";
+
+    // Automatically move cursor to a new line after output
+    consoleBox.setSelectionRange(consoleBox.value.length, consoleBox.value.length);
+    consoleBox.focus();
+
   } catch (err) {
     consoleBox.value =
-      userInput + "\n" + "―".repeat(40) + "\nError: " + err.message;
+      currentText +
+      "\n" +
+      "―".repeat(40) +
+      "\nError: " +
+      err.message;
   }
 
-  // Scroll to latest output
+  // Always scroll to bottom for latest output
   consoleBox.scrollTop = consoleBox.scrollHeight;
 };
 
