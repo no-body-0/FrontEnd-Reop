@@ -128,7 +128,16 @@
 <body>
   <h2>🐍 Online Python Compiler</h2>
 
-  <textarea id="code">print("Hello!!!")</textarea>
+  <textarea id="code"># To find if number is odd or even
+def oe():
+    n = int(input("No.: "))
+    if n % 2 == 0:
+        print("Even")
+    else:
+        print("Odd")
+
+oe()</textarea>
+
   <div class="buttons">
     <button id="run">▶ Run</button>
     <button id="share">🔗 Share</button>
@@ -156,40 +165,16 @@
     const consoleBox = document.getElementById("console");
     const cursor = document.querySelector(".cursor");
     let inputBuffer = "";
+    let waitingForInput = false;
 
-    // === Append to console ===
+    // Append to console
     function appendToConsole(text) {
       cursor.insertAdjacentText("beforebegin", text);
       consoleBox.scrollTop = consoleBox.scrollHeight;
     }
 
-    // === Handle keyboard input ===
-    consoleBox.addEventListener("keydown", async (e) => {
-      e.preventDefault();
-
-      if (e.key.length === 1 && !e.ctrlKey) {
-        inputBuffer += e.key;
-        cursor.insertAdjacentText("beforebegin", e.key);
-      } else if (e.key === "Backspace") {
-        inputBuffer = inputBuffer.slice(0, -1);
-        if (cursor.previousSibling?.nodeType === Node.TEXT_NODE) {
-          cursor.previousSibling.textContent =
-            cursor.previousSibling.textContent.slice(0, -1);
-        }
-      } else if (e.key === "Enter") {
-        appendToConsole("\n");
-        await runCode(inputBuffer);
-        inputBuffer = "";
-      }
-    });
-
-    // === Run button ===
-    document.getElementById("run").addEventListener("click", async () => {
-      await runCode("");
-    });
-
-    // === Run code function ===
-    async function runCode(inputLine) {
+    // Run Python code
+    async function runCode(inputLine = "") {
       const code = editor.getValue();
       appendToConsole("⏳ Running...\n");
 
@@ -200,14 +185,54 @@
           body: JSON.stringify({ code, stdin: inputLine }),
         });
         const data = await res.json();
-        const output = data.output.trim();
+        const output = data.output;
+
         appendToConsole(output + "\n>>> ");
+
+        // Detect input() prompt
+        if (output.includes("input(") || output.includes("No.:")) {
+          waitingForInput = true;
+          appendToConsole(""); // keep prompt alive
+        } else {
+          waitingForInput = false;
+        }
       } catch (err) {
         appendToConsole("Error: " + err.message + "\n>>> ");
       }
     }
 
-    // === Share button ===
+    // Keyboard handling
+    consoleBox.addEventListener("keydown", async (e) => {
+      e.preventDefault();
+
+      if (e.key.length === 1 && !e.ctrlKey && waitingForInput) {
+        inputBuffer += e.key;
+        cursor.insertAdjacentText("beforebegin", e.key);
+      } else if (e.key === "Backspace" && waitingForInput) {
+        inputBuffer = inputBuffer.slice(0, -1);
+        if (cursor.previousSibling?.nodeType === Node.TEXT_NODE) {
+          cursor.previousSibling.textContent =
+            cursor.previousSibling.textContent.slice(0, -1);
+        }
+      } else if (e.key === "Enter") {
+        if (waitingForInput) {
+          appendToConsole("\n");
+          const val = inputBuffer + "\n";
+          inputBuffer = "";
+          waitingForInput = false;
+          await runCode(val);
+        } else {
+          await runCode("");
+        }
+      }
+    });
+
+    // Run button
+    document.getElementById("run").addEventListener("click", async () => {
+      await runCode("");
+    });
+
+    // Share button
     document.getElementById("share").addEventListener("click", async () => {
       const code = editor.getValue();
       try {
@@ -228,7 +253,7 @@
       }
     });
 
-    // === Load shared code from URL ===
+    // Load shared code
     const urlParams = new URLSearchParams(window.location.search);
     const codeId = urlParams.get("id");
     if (codeId) {
