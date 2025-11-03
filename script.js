@@ -3,19 +3,23 @@ const shareBtn = document.getElementById("share");
 const codeArea = document.getElementById("code");
 const consoleBox = document.getElementById("console");
 
-const backendURL = "https://backend-repo-j0ed.onrender.com"; // your Render backend URL
+const backendURL = "https://backend-repo-j0ed.onrender.com"; // your backend URL
+
+// === Function to append text to console ===
+function appendToConsole(text) {
+  consoleBox.value += text + "\n";
+  consoleBox.scrollTop = consoleBox.scrollHeight;
+}
 
 // === Run Code ===
 runBtn.onclick = async () => {
   const code = codeArea.value.trim();
-  const currentText = consoleBox.value.trimEnd();
 
-  // Prepare a clean input line
-  const newInputLine = currentText ? "\n" : "";
+  // Get only user-entered text after last ">>>"
+  const lines = consoleBox.value.split("\n");
+  const lastInput = lines.length ? lines[lines.length - 1].trim() : "";
 
-  // Append "Running..." below current content
-  consoleBox.value = currentText + newInputLine + "⏳ Running...\n";
-  consoleBox.scrollTop = consoleBox.scrollHeight;
+  appendToConsole("⏳ Running...\n");
 
   try {
     const res = await fetch(`${backendURL}/run`, {
@@ -23,38 +27,31 @@ runBtn.onclick = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         code,
-        stdin: currentText, // send all previous console text as stdin
+        stdin: lastInput, // Send only latest user line as input
       }),
     });
 
     const data = await res.json();
     const outputText = data.output?.trim() || "(no output)";
 
-    // Append output below the previous text
-    consoleBox.value =
-      currentText +
-      "\n" +
-      "―".repeat(40) +
-      "\n" +
-      outputText +
-      "\n";
-
-    // Automatically move cursor to a new line after output
-    consoleBox.setSelectionRange(consoleBox.value.length, consoleBox.value.length);
-    consoleBox.focus();
+    appendToConsole("―".repeat(40));
+    appendToConsole(outputText);
+    appendToConsole(">>> "); // add new prompt line
 
   } catch (err) {
-    consoleBox.value =
-      currentText +
-      "\n" +
-      "―".repeat(40) +
-      "\nError: " +
-      err.message;
+    appendToConsole("―".repeat(40));
+    appendToConsole("Error: " + err.message);
+    appendToConsole(">>> ");
   }
-
-  // Always scroll to bottom for latest output
-  consoleBox.scrollTop = consoleBox.scrollHeight;
 };
+
+// === Press Enter in console to run ===
+consoleBox.addEventListener("keydown", async (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    runBtn.click(); // simulate clicking run
+  }
+});
 
 // === Share Code ===
 shareBtn.onclick = async () => {
@@ -88,3 +85,6 @@ if (codeId) {
       codeArea.value = data.code || "Error loading code.";
     });
 }
+
+// === Initialize Console Prompt ===
+consoleBox.value = ">>> ";
